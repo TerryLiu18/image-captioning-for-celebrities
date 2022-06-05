@@ -7,7 +7,7 @@ import torchvision.transforms as T
 
 from config import DATA_LOCATION, TEST_LOCATION, print_every
 from torch.utils.data import DataLoader, Dataset
-from data_loader import FlickrDataset, TestDataset, get_data_loader, get_test_loader
+from data_loader import FlickrDataset, TestDataset, get_data_loader, get_test_data
 from utils import transforms, load_checkpoint, save_checkpoint, show_image
 from model import EncoderDecoder
 from face_recognition import get_name
@@ -41,17 +41,17 @@ data_loader = get_data_loader(
     shuffle=True,
 )
 
-testdataset = TestDataset(
-    root_dir=TEST_LOCATION,
-    transform=transforms
-)
+# testdataset = TestDataset(
+#     root_dir=TEST_LOCATION,
+#     transform=transforms
+# )
 
-test_loader = get_test_loader(
-    dataset=testdataset,
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    num_workers=NUM_WORKER,
-)
+# test_loader = get_test_loader(
+#     dataset=testdataset,
+#     batch_size=BATCH_SIZE,
+#     shuffle=True,
+#     num_workers=NUM_WORKER,
+# )
 
 embed_size = 300
 vocab_size = len(dataset.vocab)
@@ -150,13 +150,25 @@ if __name__ == '__main__':
                 if (idx + 1) % print_every == 0:
                     print("Epoch: {} loss: {:.5f}".format(epoch, loss.item()))
 
-    dataiter = iter(test_loader)
-    images, name_list = next(dataiter)
+    img, name_list = get_test_data()
+    # display image
 
-    img = images[0].detach().clone()
-    img1 = images[0].detach().clone()
+    transforms2 = T.Compose([
+        T.Resize(226),                     
+        T.RandomCrop(224),                 
+        T.ToTensor(),                               
+        T.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225))
+    ])
+    img = transforms2(img)
+
+    # dataiter = iter(test_loader)
+    # images, name_list = next(dataiter)
+
+    # img = images[0].detach().clone()
+    # img1 = images[0].detach().clone()
     caps, alphas = get_caps_from(img.unsqueeze(0))
     print(f"this is {name_list}")
+    print(caps)
 
 
 

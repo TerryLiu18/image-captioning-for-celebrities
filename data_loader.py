@@ -1,4 +1,5 @@
 import os
+import random
 import spacy
 import torch
 import numpy as np
@@ -10,7 +11,7 @@ from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 
-import face_recognition
+from config import DATA_LOCATION, TEST_LOCATION
 from face_recognition import mtcnn, get_name
 
 
@@ -117,19 +118,24 @@ class TestDataset(Dataset):
         # img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
         # name_list = get_name(img_cropped_list, prob_list)
 
+        # img_location = os.path.join(self.root_dir, str(idx) + ".jpg")
+        # img = Image.open(img_location)
+        # img2 = img.copy().convert("RGB")
+        # if self.transform is not None:
+        #     img2 = self.transform(img2)
+        # img = np.array(img)
+        # img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
+        # name_list = get_name(img_cropped_list, prob_list)
+        # return img2, name_list
+
         img_location = os.path.join(self.root_dir, str(idx) + ".jpg")
-        img = Image.open(img_location)
-        img2 = img.copy().convert("RGB")
+        img = Image.open(img_location).convert("RGB")
         
         if self.transform is not None:
-            img2 = self.transform(img2)
+            img = self.transform(img)
+        return img
 
-        img = np.array(img)
-        img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
-        name_list = get_name(img_cropped_list, prob_list)
-        return img2, name_list
-
-
+    
 
 class CapsCollate:
     """
@@ -179,6 +185,28 @@ def get_data_loader(dataset, batch_size, shuffle=False, num_workers=1):
     return data_loader
 
 
+def test_data(root_dir=TEST_LOCATION, transform=None, idx=0):
+    img_location = os.path.join(root_dir, str(idx) + ".jpg")
+    img = Image.open(img_location)
+    img2 = Image.open(img_location).convert("RGB")
+    
+    if transform is not None:
+        img2 = transform(img2)
+
+    img = np.array(img)
+    img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
+    name_list = get_name(img_cropped_list, prob_list)
+    print(f'test_data return type: {type(img2)}, {type(name_list)}')
+    return img2, name_list
+
+
+def get_test_data(root_dir=TEST_LOCATION, shuffle=False):
+    testset_size = len(os.listdir(root_dir))
+    seed = random.randint(0, testset_size - 1)                                         
+    image, name_list = test_data(root_dir, transform=None, idx=seed)
+    return image, name_list
+
+
 def get_test_loader(dataset, batch_size, shuffle=False, num_workers=1):
     """get test loader
     returns are comprised of image and name_list
@@ -223,24 +251,33 @@ if __name__ == '__main__':
         num_workers=1,
     )
 
-    for batch in test_loader:
-        name_list = batch[1]
-        # for name in name_list:
-        #     print(name)
-        # datapoint = batch[0]
-        # img, name_list = datapoint[0], datapoint[1]
-        # print(img.shape)
-        print(name_list)
-        break
-
-
+    img, name_list = get_test_data(TEST_LOCATION, shuffle=True)
+    print(name_list)
 
     # dataiter = iter(test_loader)
-    # images, name_list = next(dataiter)
+    # images = next(dataiter)
+
+    # img = images[0].detach().clone()
+    # img1 = images[0].detach().clone().numpy()
+    # print('type(img): {}'.format(type(img1)))
+
+    # img2 = np.array(img1)
+    # img_cropped_list, prob_list = mtcnn(img2, return_prob=True) 
+    # print(prob_list)
+    # name_list = get_name(img_cropped_list, prob_list)
+
+    # img_location = os.path.join(self.root_dir, str(idx) + ".jpg")
+    # img = Image.open(img_location)
+    # img2 = img.copy().convert("RGB")
+    # if self.transform is not None:
+    #     img2 = self.transform(img2)
+    # img = np.array(img)
+    # img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
+    # name_list = get_name(img_cropped_list, prob_list)
+    # return img2, name_list
 
     # img = images[0].detach().clone()
     # img1 = images[0].detach().clone()
     
     
     # caps, alphas = get_caps_from(img.unsqueeze(0))
-    # print(name_list)

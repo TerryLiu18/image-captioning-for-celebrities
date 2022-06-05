@@ -1,3 +1,5 @@
 flickr8k/images/*
 !flickr8k/images/*1e.jpg
 __pycache__/
+checkpoint.pth.tar
+*/__pycache__/
