@@ -1,0 +1,3 @@
+flickr8k/images/*
+!flickr8k/images/*e.jpg
+__pycache__/
