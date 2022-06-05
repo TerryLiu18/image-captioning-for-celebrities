@@ -1,3 +1,4 @@
+# %%
 import os
 import torch
 import torch.nn as nn
@@ -78,6 +79,7 @@ load_model = True
 need_train = False
 num_epochs = 0
 
+# %%
 # generate caption
 def get_caps_from(features_tensors):
     #generate the caption
@@ -117,6 +119,7 @@ def plot_attention(img, result, attention_plot):
     plt.tight_layout()
     plt.show()
 
+# %%
 
 if __name__ == '__main__':
     print('start training!')
@@ -155,6 +158,8 @@ if __name__ == '__main__':
     img, name_list = get_test_data()
     # display image
 
+# %%
+    from parse_sentence import parse_np, replace_np
     transforms2 = T.Compose([
         T.Resize(226),                     
         T.RandomCrop(224),                 
@@ -172,8 +177,16 @@ if __name__ == '__main__':
     print(f"this is {name_list}")
     print(caps)
 
+    text = ' '.join(caps)
+    nps = parse_np(text)
+    text2 = replace_np(text, nps, name_list)
+    print(f'{text} => {text2}')
+    show_image(img, title=text2)
 
 
 
 
 
+
+
+# %%
