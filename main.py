@@ -7,7 +7,7 @@ import torchvision.transforms as T
 
 from config import DATA_LOCATION, TEST_LOCATION, print_every
 from torch.utils.data import DataLoader, Dataset
-from data_loader import FlickrDataset, TestDataset, get_data_loader
+from data_loader import FlickrDataset, TestDataset, get_data_loader, get_test_loader
 from utils import transforms, load_checkpoint, save_checkpoint, show_image
 from model import EncoderDecoder
 from face_recognition import get_name
@@ -46,7 +46,7 @@ testdataset = TestDataset(
     transform=transforms
 )
 
-test_loader = DataLoader(
+test_loader = get_test_loader(
     dataset=testdataset,
     batch_size=BATCH_SIZE,
     shuffle=True,
@@ -151,11 +151,12 @@ if __name__ == '__main__':
                     print("Epoch: {} loss: {:.5f}".format(epoch, loss.item()))
 
     dataiter = iter(test_loader)
-    images, _ = next(dataiter)
+    images, name_list = next(dataiter)
 
     img = images[0].detach().clone()
     img1 = images[0].detach().clone()
     caps, alphas = get_caps_from(img.unsqueeze(0))
+    print(f"this is {name_list}")
 
 
 

@@ -1,14 +1,18 @@
-#imports 
 import os
-from collections import Counter
-import numpy as np
-import pandas as pd
 import spacy
 import torch
+import numpy as np
+import pandas as pd
+import torchvision.transforms as T
+
+from PIL import Image
+from collections import Counter
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
-import torchvision.transforms as T
-from PIL import Image
+
+import face_recognition
+from face_recognition import mtcnn, get_name
+
 
 class Vocabulary:
     #tokenizer
@@ -52,7 +56,7 @@ class Vocabulary:
     def numericalize(self, text):
         """ For each word in the text corresponding index token for that word form the vocab built as list """
         tokenized_text = self.tokenize(text)
-        return [ self.stoi[token] if token in self.stoi else self.stoi["<UNK>"] for token in tokenized_text ]    
+        return [self.stoi[token] if token in self.stoi else self.stoi["<UNK>"] for token in tokenized_text]    
     
 class FlickrDataset(Dataset):
     """
@@ -104,33 +108,28 @@ class TestDataset(Dataset):
         self.transform = transform
         self.len = len(os.listdir(root_dir))
         
-        #Get image and caption colum from the dataframe
-        # self.imgs = self.df["image"]
-        # self.captions = self.df["caption"]
-        
-        #Initialize vocabulary and build vocab
-        # self.vocab = Vocabulary(freq_threshold)
-        # self.vocab.build_vocab(self.captions.tolist())
-    
     def __len__(self):
         return self.len
     
     def __getitem__(self, idx):
-        # caption = self.captions[idx]
-        # img_name = self.imgs[idx]
+        # img = Image.open('0.jpg') # image path
+        # img = np.array(img)
+        # img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
+        # name_list = get_name(img_cropped_list, prob_list)
+
         img_location = os.path.join(self.root_dir, str(idx) + ".jpg")
-        img = Image.open(img_location).convert("RGB")
+        img = Image.open(img_location)
+        img2 = img.copy().convert("RGB")
         
-        #apply the transfromation to the image
         if self.transform is not None:
-            img = self.transform(img)
-        
-        #numericalize the caption text
-        # caption_vec = []
-        # caption_vec += [self.vocab.stoi["<SOS>"]]
-        # caption_vec += self.vocab.numericalize(caption)
-        # caption_vec += [self.vocab.stoi["<EOS>"]]
-        return img, 'No Caption'
+            img2 = self.transform(img2)
+
+        img = np.array(img)
+        img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
+        name_list = get_name(img_cropped_list, prob_list)
+        return img2, name_list
+
+
 
 class CapsCollate:
     """
@@ -146,23 +145,25 @@ class CapsCollate:
         
         targets = [item[1] for item in batch]
         targets = pad_sequence(targets, batch_first=self.batch_first, padding_value=self.pad_idx)
-        return imgs,targets
+        return imgs, targets
 
 
 def get_data_loader(dataset, batch_size, shuffle=False, num_workers=1):
     """
     Returns torch dataloader for the flicker8k dataset
     
-    Parameters
-    -----------
-    dataset: FlickrDataset
-        custom torchdataset named FlickrDataset 
-    batch_size: int
-        number of data to load in a particular batch
-    shuffle: boolean,optional;
-        should shuffle the datasests (default is False)
-    num_workers: int,optional
-        numbers of workers to run (default is 1)  
+    Args:
+        dataset: FlickrDataset
+            custom torchdataset named FlickrDataset 
+        batch_size: int
+            number of data to load in a particular batch
+        shuffle: boolean,optional;
+            should shuffle the datasests (default is False)
+        num_workers: int,optional
+            numbers of workers to run (default is 1)  
+    
+    Returns:
+        data_loader: torch.utils.data.DataLoader
     """
 
     pad_idx = dataset.vocab.stoi["<PAD>"]
@@ -175,5 +176,71 @@ def get_data_loader(dataset, batch_size, shuffle=False, num_workers=1):
         num_workers=num_workers,
         collate_fn=collate_fn
     )
-
     return data_loader
+
+
+def get_test_loader(dataset, batch_size, shuffle=False, num_workers=1):
+    """get test loader
+    returns are comprised of image and name_list
+    
+    Args:
+        dataset: TestDataset
+            custom torchdataset named TestDataset
+        batch_size: int
+            number of data to load in a particular batch
+        shuffle: boolean, optional;
+            should shuffle the datasests (default is False)
+        num_workers: int, optional
+            numbers of workers to run (default is 1)  
+    
+    Returns:
+        data_loader: torch.utils.data.DataLoader
+    """
+
+    data_loader = DataLoader(
+        dataset=dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+    )
+    return data_loader
+
+
+if __name__ == '__main__':
+    """test dataloader"""
+    from config import *
+    from utils import transforms
+
+    testdataset = TestDataset(
+        root_dir=TEST_LOCATION,
+        transform=transforms
+    )
+
+    test_loader = get_test_loader(
+        dataset=testdataset,
+        batch_size=2,
+        shuffle=True,
+        num_workers=1,
+    )
+
+    for batch in test_loader:
+        name_list = batch[1]
+        # for name in name_list:
+        #     print(name)
+        # datapoint = batch[0]
+        # img, name_list = datapoint[0], datapoint[1]
+        # print(img.shape)
+        print(name_list)
+        break
+
+
+
+    # dataiter = iter(test_loader)
+    # images, name_list = next(dataiter)
+
+    # img = images[0].detach().clone()
+    # img1 = images[0].detach().clone()
+    
+    
+    # caps, alphas = get_caps_from(img.unsqueeze(0))
+    # print(name_list)

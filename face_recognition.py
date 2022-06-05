@@ -29,7 +29,7 @@ embedding_list, name_list = load_data[0], load_data[1]
 
 
 
-def get_name(img_cropped_list):
+def get_name(img_cropped_list, prob_list):
     ''' get the names of celebrities
     get the cropped img from mtcnn and return name of celebrities
     
@@ -60,7 +60,7 @@ def get_name(img_cropped_list):
                 name = 'nobody'
                 celebrity_list.append(name)
             else:
-                print('match distance', min_dist)
+                # print('match distance', min_dist)
                 min_dist_idx = dist_list.index(min_dist) # get minumum dist index
                 name = name_list[min_dist_idx] # get name corrosponding to minimum dist\
                 # print(f'we guess he/she is {name}')
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     img = Image.open('0.jpg') # image path
     img = np.array(img)
     img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
-    name_list = get_name(img_cropped_list)
+    name_list = get_name(img_cropped_list, prob_list)
     print(name_list)
 
 
