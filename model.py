@@ -29,13 +29,13 @@ class EncoderCNN(nn.Module):
         
 
     def forward(self, images):
-        features = self.resnet(images)                                    #(batch_size,2048,7,7)
-        features = features.permute(0, 2, 3, 1)                           #(batch_size,7,7,2048)
-        features = features.view(features.size(0), -1, features.size(-1)) #(batch_size,49,2048)
+        features = self.resnet(images)                                    #(batch_size, 2048, 7, 7)
+        features = features.permute(0, 2, 3, 1)                           #(batch_size, 7, 7, 2048)
+        features = features.view(features.size(0), -1, features.size(-1)) #(batch_size, 49, 2048)
         return features
 
 
-#Bahdanau Attention
+# Bahdanau Attention
 class Attention(nn.Module):
     def __init__(self, encoder_dim, decoder_dim, attention_dim):
         super(Attention, self).__init__()
@@ -50,13 +50,13 @@ class Attention(nn.Module):
         u_hs = self.U(features)     #(batch_size, num_layers, attention_dim)
         w_ah = self.W(hidden_state) #(batch_size, attention_dim)
         
-        combined_states = torch.tanh(u_hs + w_ah.unsqueeze(1)) #(batch_size,num_layers,attemtion_dim)
-        attention_scores = self.A(combined_states)         #(batch_size,num_layers,1)
-        attention_scores = attention_scores.squeeze(2)     #(batch_size,num_layers)
+        combined_states = torch.tanh(u_hs + w_ah.unsqueeze(1)) #(batch_size, num_layers, attemtion_dim)
+        attention_scores = self.A(combined_states)         #(batch_size, num_layers, 1)
+        attention_scores = attention_scores.squeeze(2)     #(batch_size, num_layers)
         
-        alpha = F.softmax(attention_scores,dim=1)          #(batch_size,num_layers)
-        attention_weights = features * alpha.unsqueeze(2)  #(batch_size,num_layers,features_dim)
-        attention_weights = attention_weights.sum(dim=1)   #(batch_size,num_layers)
+        alpha = F.softmax(attention_scores, dim=1)          #(batch_size, num_layers)
+        attention_weights = features * alpha.unsqueeze(2)  #(batch_size, num_layers, features_dim)
+        attention_weights = attention_weights.sum(dim=1)   #(batch_size, num_layers)
         
         return alpha, attention_weights
         
@@ -98,7 +98,7 @@ class DecoderRNN(nn.Module):
         alphas = torch.zeros(batch_size, seq_length,num_features).to(device)
                 
         for s in range(seq_length):
-            alpha,context = self.attention(features, h)
+            alpha, context = self.attention(features, h)
             lstm_input = torch.cat((embeds[:, s], context), dim=1)
             h, c = self.lstm_cell(lstm_input, (h, c))
                     
