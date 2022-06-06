@@ -1,4 +1,4 @@
-# %%
+# %% ---------------------------------------
 import os
 import torch
 import torch.nn as nn
@@ -12,7 +12,6 @@ from data_loader import FlickrDataset, TestDataset, get_data_loader, get_test_da
 from utils import transforms, load_checkpoint, save_checkpoint, show_image
 from model import EncoderDecoder
 from face_recognition import get_name
-from parse_sentence import parse_np, replace_np
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -79,7 +78,7 @@ load_model = True
 need_train = False
 num_epochs = 0
 
-# %%
+# %% ---------------------------------------
 # generate caption
 def get_caps_from(features_tensors):
     #generate the caption
@@ -158,30 +157,34 @@ if __name__ == '__main__':
     img, name_list = get_test_data()
     # display image
 
-# %%
-    from parse_sentence import parse_np, replace_np
+# %% ---------------------------------------
+    from parse import replace_np, parse_np
     transforms2 = T.Compose([
         T.Resize(226),                     
         T.RandomCrop(224),                 
         T.ToTensor(),                               
         T.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225))
     ])
-    img = transforms2(img)
+    print(type(img))
+    img2 = img.copy()
+    img2 = transforms2(img2)
 
     # dataiter = iter(test_loader)
     # images, name_list = next(dataiter)
 
     # img = images[0].detach().clone()
     # img1 = images[0].detach().clone()
-    caps, alphas = get_caps_from(img.unsqueeze(0))
+    caps, alphas = get_caps_from(img2.unsqueeze(0))
     print(f"this is {name_list}")
     print(caps)
-
+# %%
     text = ' '.join(caps)
     nps = parse_np(text)
-    text2 = replace_np(text, nps, name_list)
+
+    words, total_num_of_people, tree = parse_np(text)
+    text2 = replace_np(text[: -1], nps, total_num_of_people, name_list, tree)
     print(f'{text} => {text2}')
-    show_image(img, title=text2)
+    show_image(transforms2(img), title=text2)
 
 
 
