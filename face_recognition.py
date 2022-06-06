@@ -55,7 +55,7 @@ def get_name(img_cropped_list, prob_list):
                 dist_list.append(dist)
 
             min_dist = min(dist_list) # get minumum dist value
-            if min_dist > 0.75:
+            if min_dist > 0.85:
                 # print('No match found')
                 name = 'nobody'
                 celebrity_list.append(name)
@@ -69,7 +69,7 @@ def get_name(img_cropped_list, prob_list):
 
 
 if __name__ == '__main__':
-    img = Image.open('0.jpg') # image path
+    img = Image.open('cele_test/2.jpg') # image path
     img = np.array(img)
     img_cropped_list, prob_list = mtcnn(img, return_prob=True) 
     name_list = get_name(img_cropped_list, prob_list)
