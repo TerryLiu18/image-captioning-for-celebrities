@@ -29,7 +29,7 @@ def is_np(subtree):
     Args:
         subtree: nltk.tree.Tree
     Returns:
-        None if not np, else return a list of str
+        bool
     '''
     if subtree.label() != 'NP':
         return False
@@ -65,7 +65,7 @@ def count_num_of_people(subtree: nltk.tree.Tree) -> int:
     return num_of_people
 
 
-def parse_np(text):
+def parse_np(text, grammar=grammar):
     '''parse np in sentence
     Args:
         text: str
@@ -77,12 +77,11 @@ def parse_np(text):
     sentence = nltk.word_tokenize(text)
     sentence_tag = nltk.pos_tag(sentence)
 
-    grammar = "NP: {(<DT>|<CD>)*(<NN.*>|<JJ.*>)*<NN.*>}"
+    # grammar = "NP: {(<DT>|<CD>)*(<NN.*>|<JJ.*>)*<NN.*>}"
     cp = nltk.RegexpParser(grammar)
     tree = cp.parse(sentence_tag)
 
     words = []
-
     total_num_of_people = 0
     for subtree in tree.subtrees():
         if not is_np(subtree): continue
@@ -110,10 +109,8 @@ def replace_np(text, words, total_num_of_people, names, tree):
     '''
 
     if total_num_of_people != len(names):
-        # print(f'name of people: {nums_of_people} != names: {names}')
         return text
 
-    # print(f'{words} : {names}') 
     if len(words) == len(names):
         for i in range(len(words)):
             word, name = words[i], names[i]
@@ -143,19 +140,8 @@ def replace_np(text, words, total_num_of_people, names, tree):
                     entity_name += name
 
             text = re.sub(text_to_be_replaced, entity_name, text)  
-            cnt += num_of_people
+            cnt += num_of_people  # change the index of names
     return text
-
-# texts = [
-#     # 'A child in a pink dress is climbing up a set of stairs in an entry way .',
-#     # 'A girl going into a wooden building .',
-#     # 'A black dog and a white dog with brown spots are staring at each other in the street .',
-#     # 'A small girl in the grass plays with fingerpaints in front of a white canvas with a rainbow on it .',
-#     # 'The man with pierced ears is wearing glasses and an orange hat .',
-#     # 'Two young children is walking on a stone paved street with a metal pole and a man behind him .',
-#     'Three men are Having dinner and a woman is behind them'
-# ]
-
 
 
 if __name__ == '__main__':
@@ -174,11 +160,6 @@ if __name__ == '__main__':
     
     for text, face_list in texts:
         words, num_of_people, tree = parse_np(text)
-        # print('num of people', num_of_people)
-        # if words:
-        #     print(f'{words} | {text}.')
-        # else:
-        #     print(f'[not found] | {text}.')
         text = replace_np(text, words, num_of_people, face_list, tree)
         print(text + '\n')
 
