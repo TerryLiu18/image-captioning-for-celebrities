@@ -11,7 +11,7 @@ from data_loader import FlickrDataset, TestDataset, get_data_loader, get_test_da
 from utils import transforms, load_checkpoint, save_checkpoint, show_image
 from model import EncoderDecoder
 from face_recognition import get_name
-from parse_sentence import parse_np, replace_np
+from parse import parse_np, replace_np
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
