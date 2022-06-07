@@ -1,7 +1,7 @@
 flickr8k/images/*
 flickr30k/images/*
 !flickr8k/images/*1e.jpg
-!flickr30k/images/*11e.jpg
+!flickr30k/images/36979.jpg
 __pycache__/
 checkpoint.pth.tar
 */__pycache__/
